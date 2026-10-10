@@ -8,8 +8,8 @@ test('creates an offline job, watches it complete, and plays the result', async 
 
   await expect(page.getByText('OFFLINE mode', { exact: false })).toBeVisible()
 
-  await page.getByLabel('Topic', { exact: false }).fill('a short e2e smoke test topic')
-  await page.getByRole('button', { name: 'Create job' }).click()
+  await page.getByLabel("What's it about?", { exact: false }).fill('a short e2e smoke test topic')
+  await page.getByRole('button', { name: 'Create video' }).click()
 
   await page.waitForURL(/\/jobs\/.+/, { timeout: 15_000 })
 

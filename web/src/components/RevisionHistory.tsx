@@ -5,7 +5,7 @@ export function RevisionHistory({ history }: { history: RevisionHistoryEntry[] }
   return (
     <div className="space-y-1">
       <h3 className="text-sm font-semibold">Revision history</h3>
-      <ul className="text-sm text-slate-600 dark:text-slate-300">
+      <ul className="text-sm text-muted-foreground">
         {history.map((entry, i) => (
           <li key={i}>
             Round {entry.round}: critic score {entry.score}

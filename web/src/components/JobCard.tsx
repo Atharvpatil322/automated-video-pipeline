@@ -1,4 +1,8 @@
+import { Film, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 import { fileUrl } from '../api/client'
 import { useVisuals } from '../api/queries'
@@ -17,8 +21,8 @@ function Thumbnail({ job }: { job: JobSummary }) {
   )
   if (!firstImage?.path) {
     return (
-      <div className="flex aspect-video items-center justify-center rounded-md bg-slate-100 text-xs text-slate-400 dark:bg-slate-900">
-        no preview
+      <div className="flex aspect-video items-center justify-center rounded-lg bg-muted">
+        <Film className="h-6 w-6 text-muted-foreground/50" aria-hidden="true" />
       </div>
     )
   }
@@ -26,36 +30,34 @@ function Thumbnail({ job }: { job: JobSummary }) {
     <img
       src={fileUrl(settings, job.id, relativeToRunDir(firstImage.path, job.run_dir))}
       alt=""
-      className="aspect-video w-full rounded-md object-cover"
+      className="aspect-video w-full rounded-lg object-cover"
     />
   )
 }
 
 export function JobCard({ job, onDelete }: { job: JobSummary; onDelete: (id: string) => void }) {
   return (
-    <div className="space-y-2 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-      <Thumbnail job={job} />
-      <div className="flex items-center justify-between gap-2">
-        <p className="truncate font-medium" title={job.topic}>
-          {job.topic}
-        </p>
-        <StatusBadge status={job.status} />
-      </div>
-      <div className="flex gap-2 text-sm">
-        <Link
-          to={`/jobs/${job.id}`}
-          className="rounded-md border border-slate-300 px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
-        >
-          Open
-        </Link>
-        <button
-          type="button"
-          onClick={() => onDelete(job.id)}
-          className="rounded-md border border-red-300 px-2 py-1 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
+    <Card className="gap-2 p-3">
+      <Link to={`/jobs/${job.id}`} className="block space-y-2">
+        <Thumbnail job={job} />
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-sm font-medium" title={job.topic}>
+            {job.topic}
+          </p>
+          <StatusBadge status={job.status} />
+        </div>
+      </Link>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => onDelete(job.id)}
+        aria-label={`Delete "${job.topic}"`}
+        className="h-auto w-fit justify-start px-1.5 py-0.5 text-xs text-muted-foreground hover:text-destructive"
+      >
+        <Trash2 aria-hidden="true" />
+        Delete
+      </Button>
+    </Card>
   )
 }

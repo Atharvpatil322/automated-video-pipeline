@@ -19,16 +19,24 @@ describe('CostPanel', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
+  it('shows the prominent total as the actual cost once real usage exists', () => {
+    render(<CostPanel estimate={estimate} actual={actual} />)
+    expect(screen.getByText('Cost so far')).toBeInTheDocument()
+    // 0.012 + 0.1 + 0.21 + 0.3 + 0 + 0.04 = 0.662 - appears once in the
+    // header and again in the breakdown table's Actual total, so the
+    // breakdown-specific check below uses getAllByText.
+    expect(screen.getAllByText('$0.6620')).toHaveLength(2)
+  })
+
   it('sums the breakdown into matching estimate and actual totals', () => {
     render(<CostPanel estimate={estimate} actual={actual} />)
     // 0.01 + 0.1 + 0.2 + 0.3 + 0 + 0.04 = 0.65
     expect(screen.getByText('$0.6500')).toBeInTheDocument()
-    // 0.012 + 0.1 + 0.21 + 0.3 + 0 + 0.04 = 0.662
-    expect(screen.getByText('$0.6620')).toBeInTheDocument()
   })
 
-  it('shows estimate notes', () => {
+  it('shows the estimate as the prominent total before any real usage exists', () => {
     render(<CostPanel estimate={estimate} actual={null} />)
+    expect(screen.getByText('Estimated cost')).toBeInTheDocument()
     expect(screen.getByText('stock disabled, using AI image fallback')).toBeInTheDocument()
   })
 })

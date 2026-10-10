@@ -1,8 +1,12 @@
+import { Clock, Trash2, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { Button } from '@/components/ui/button'
+
 import { useCancelJob, useDeleteJob, useJob, useVisuals } from '../api/queries'
 import type { JobDocument, RevisionHistoryEntry, StageName, StageRecord } from '../api/types'
+import { Card } from '../components/Card'
 import { CostPanel } from '../components/CostPanel'
 import { CriticReview } from '../components/CriticReview'
 import { ErrorState } from '../components/ErrorState'
@@ -155,63 +159,64 @@ export function Job() {
   const isTerminal = TERMINAL.has(job.status)
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-4">
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
+      <header className="space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <h1 className="text-xl font-bold">{job.options.topic}</h1>
           <StatusBadge status={job.status} />
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-          {elapsed && <span>Elapsed: {elapsed}</span>}
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          {elapsed && (
+            <span className="flex items-center gap-1">
+              <Clock className="h-4 w-4" aria-hidden="true" />
+              {elapsed}
+            </span>
+          )}
           {!isTerminal && !confirmingCancel && (
-            <button
-              type="button"
-              onClick={() => setConfirmingCancel(true)}
-              className="rounded-md border border-slate-300 px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
-            >
+            <Button variant="outline" size="sm" className="rounded-full" onClick={() => setConfirmingCancel(true)}>
+              <XCircle aria-hidden="true" />
               Cancel
-            </button>
+            </Button>
           )}
           {!isTerminal && confirmingCancel && (
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               Cancel? The current stage will finish first.
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="rounded-md border border-red-300 px-2 py-1 text-red-700 dark:border-red-800 dark:text-red-300"
-              >
+              <Button variant="destructive" size="sm" className="rounded-full" onClick={handleCancel}>
                 Yes, cancel
-              </button>
-              <button type="button" onClick={() => setConfirmingCancel(false)} className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700">
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={() => setConfirmingCancel(false)}
+              >
                 No
-              </button>
+              </Button>
             </span>
           )}
           {isTerminal && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="rounded-md border border-red-300 px-2 py-1 text-red-700 dark:border-red-800 dark:text-red-300"
-            >
+            <Button variant="destructive" size="sm" className="rounded-full" onClick={handleDelete}>
+              <Trash2 aria-hidden="true" />
               Delete
-            </button>
+            </Button>
           )}
         </div>
       </header>
 
-      <PipelineVisualization stages={job.stages} />
+      <Card>
+        <PipelineVisualization stages={job.stages} />
+      </Card>
 
-      {job.status === 'failed' && job.error && (
-        <ErrorState
-          title={`Failed`}
-          message={job.error}
-        />
+      {job.status === 'failed' && job.error && <ErrorState title="Failed" message={job.error} />}
+
+      {job.research && (
+        <Card>
+          <ResearchSummary research={job.research} />
+        </Card>
       )}
 
-      {job.research && <ResearchSummary research={job.research} />}
-
       {job.score && (
-        <section aria-labelledby="plan-heading" className="space-y-2">
+        <Card as="section" aria-labelledby="plan-heading" className="space-y-2">
           <h2 id="plan-heading" className="text-lg font-semibold">
             Plan
           </h2>
@@ -224,15 +229,23 @@ export function Job() {
           </p>
           <SceneTable scenes={job.score.scenes} />
           <RevisionHistory history={job.revision_history} />
-        </section>
+        </Card>
       )}
 
-      <CostPanel estimate={job.cost_estimate} actual={job.cost_actual} />
+      {(job.cost_estimate || job.cost_actual) && (
+        <Card>
+          <CostPanel estimate={job.cost_estimate} actual={job.cost_actual} />
+        </Card>
+      )}
 
-      {job.review && <CriticReview review={job.review} />}
+      {job.review && (
+        <Card>
+          <CriticReview review={job.review} />
+        </Card>
+      )}
 
       {job.stages.assembly.status === 'completed' && jobId && (
-        <section aria-labelledby="result-heading" className="space-y-3">
+        <Card as="section" aria-labelledby="result-heading" className="space-y-3">
           <h2 id="result-heading" className="text-lg font-semibold">
             Result
           </h2>
@@ -240,7 +253,7 @@ export function Job() {
           {visuals.data && (
             <SceneGallery jobId={jobId} runDir={job.run_dir} scenes={visuals.data.scenes} />
           )}
-        </section>
+        </Card>
       )}
     </div>
   )

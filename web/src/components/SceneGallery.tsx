@@ -21,7 +21,7 @@ function SceneThumbnail({
   const { settings } = useSettings()
   if (!scene.path) {
     return (
-      <div className="flex aspect-video items-center justify-center rounded-md bg-slate-100 text-xs text-slate-400 dark:bg-slate-900">
+      <div className="flex aspect-video items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
         no asset
       </div>
     )
@@ -53,12 +53,12 @@ export function SceneGallery({
       {scenes.map((scene) => (
         <div key={scene.scene_index} className="space-y-1">
           <SceneThumbnail jobId={jobId} runDir={runDir} scene={scene} />
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-muted-foreground">
             Scene {scene.scene_index + 1} · {scene.status}
             {scene.method ? ` · ${scene.method}` : ''}
           </p>
           {(scene.provider || scene.confidence != null) && (
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-xs text-muted-foreground/70">
               {scene.provider ?? '—'}
               {scene.confidence != null ? ` · confidence ${scene.confidence.toFixed(2)}` : ''}
             </p>

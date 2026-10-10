@@ -1,3 +1,9 @@
+import { KeyRound, ShieldCheck, Trash2 } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
 import { useSettings } from '../state/settings'
 
 // Every vendor key the factory (app/providers/factory.py) ever reads from
@@ -23,32 +29,40 @@ export function ProviderKeysForm() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-500 dark:text-slate-400">
-        Keys are kept in this browser tab's sessionStorage only - never localStorage, never sent
-        anywhere except as part of creating a job. They're cleared when the tab closes, or with
-        the button below.
+      <p className="flex items-start gap-2 text-sm text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-success)]" aria-hidden="true" />
+        <span>
+          Kept in this browser tab's sessionStorage only — never localStorage, never sent anywhere
+          except as part of creating a job. Cleared when the tab closes, or with the button below.
+        </span>
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {KNOWN_KEYS.map(({ id, label }) => (
-          <label key={id} className="flex flex-col gap-1 text-sm">
-            <span>{label}</span>
-            <input
-              type="password"
-              autoComplete="off"
-              value={settings.providerKeys[id] ?? ''}
-              onChange={(e) => setKey(id, e.target.value)}
-              className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-            />
-          </label>
+          <div key={id} className="flex flex-col gap-1.5">
+            <Label htmlFor={`key-${id}`} className="text-sm font-normal">
+              {label}
+            </Label>
+            <div className="relative">
+              <KeyRound
+                className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                id={`key-${id}`}
+                type="password"
+                autoComplete="off"
+                value={settings.providerKeys[id] ?? ''}
+                onChange={(e) => setKey(id, e.target.value)}
+                className="h-9 pl-8"
+              />
+            </div>
+          </div>
         ))}
       </div>
-      <button
-        type="button"
-        onClick={clearKeys}
-        className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
-      >
+      <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={clearKeys}>
+        <Trash2 aria-hidden="true" />
         Clear keys
-      </button>
+      </Button>
     </div>
   )
 }

@@ -11,7 +11,7 @@ import { Home } from './Home'
 describe('Home', () => {
   it('shows a live character counter for the topic field', async () => {
     renderWithProviders(<Home />)
-    const topic = await screen.findByLabelText('Topic', { exact: false })
+    const topic = await screen.findByLabelText("What's it about?", { exact: false })
     await userEvent.type(topic, 'a brief topic')
     expect(screen.getByText('13/500')).toBeInTheDocument()
   })
@@ -23,12 +23,15 @@ describe('Home', () => {
       ),
     )
     renderWithProviders(<Home />)
-    const topic = await screen.findByLabelText('Topic', { exact: false })
+    const topic = await screen.findByLabelText("What's it about?", { exact: false })
     await userEvent.type(topic, 'a topic that will fail validation')
-    await userEvent.click(screen.getByRole('button', { name: 'Create job' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Create video' }))
 
+    // Scoped by text rather than role="alert" alone - the OfflineBanner
+    // (shadcn's Alert) also has role="alert" and is visible at the same
+    // time (the mocked /health response reports offline: true).
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('unknown archetype: made-up')
+      expect(screen.getByText('unknown archetype: made-up')).toBeInTheDocument()
     })
   })
 })

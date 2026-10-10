@@ -1,17 +1,45 @@
+import { Sparkles } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+
 import { ApiError } from '../api/client'
 import { useArchetypes, useCreateJob, useHealth, usePlatforms, useProviders } from '../api/queries'
+import { ArchetypePicker } from '../components/ArchetypePicker'
+import { Card } from '../components/Card'
+import { CollapsibleSection } from '../components/CollapsibleSection'
 import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { OfflineBanner } from '../components/OfflineBanner'
+import { PlatformPicker } from '../components/PlatformPicker'
 import { ProviderKeysForm } from '../components/ProviderKeysForm'
 import { useSettings } from '../state/settings'
 
 const TOPIC_MAX = 500
 const DIRECTION_MAX = 10_000
-const LET_DIRECTOR_CHOOSE = ''
+
+const SKIP_OPTIONS: {
+  key: 'no_tts' | 'no_visuals' | 'no_video' | 'no_music' | 'no_critic'
+  label: string
+  hint: string
+}[] = [
+  { key: 'no_tts', label: 'Skip voiceover', hint: 'Fastest preview - no narration, no visuals or assembly either' },
+  { key: 'no_visuals', label: 'Skip visuals', hint: 'Voiceover only, no images or video' },
+  { key: 'no_video', label: 'Skip AI video clips', hint: 'Use still images instead of generated video' },
+  { key: 'no_music', label: 'Skip background music', hint: '' },
+  { key: 'no_critic', label: 'Skip final review', hint: 'No critic score at the end' },
+]
 
 export function Home() {
   const navigate = useNavigate()
@@ -23,21 +51,19 @@ export function Home() {
   const createJob = useCreateJob()
 
   const [topic, setTopic] = useState('')
-  const [archetype, setArchetype] = useState(LET_DIRECTOR_CHOOSE)
+  const [archetype, setArchetype] = useState('')
   const [platform, setPlatform] = useState('')
   const [direction, setDirection] = useState('')
   const [ttsProvider, setTtsProvider] = useState('')
   const [imageProvider, setImageProvider] = useState('')
-  const [noTts, setNoTts] = useState(false)
-  const [noVisuals, setNoVisuals] = useState(false)
-  const [noVideo, setNoVideo] = useState(false)
-  const [noMusic, setNoMusic] = useState(false)
-  const [noCritic, setNoCritic] = useState(false)
+  const [skip, setSkip] = useState<Record<string, boolean>>({})
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const defaultPlatform = platforms.data?.[0] ?? 'youtube'
-  const defaultTts = providers.data?.tts.filter((p) => p !== 'offline')[0] ?? 'elevenlabs'
-  const defaultImage = providers.data?.image.filter((p) => p !== 'offline')[0] ?? 'openai'
+  const ttsOptions = providers.data?.tts.filter((p) => p !== 'offline') ?? []
+  const imageOptions = providers.data?.image.filter((p) => p !== 'offline') ?? []
+  const defaultTts = ttsOptions[0] ?? 'elevenlabs'
+  const defaultImage = imageOptions[0] ?? 'openai'
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -50,11 +76,11 @@ export function Home() {
         direction: direction || null,
         tts_provider: ttsProvider || defaultTts,
         image_provider: imageProvider || defaultImage,
-        no_tts: noTts,
-        no_visuals: noVisuals,
-        no_video: noVideo,
-        no_music: noMusic,
-        no_critic: noCritic,
+        no_tts: Boolean(skip.no_tts),
+        no_visuals: Boolean(skip.no_visuals),
+        no_video: Boolean(skip.no_video),
+        no_music: Boolean(skip.no_music),
+        no_critic: Boolean(skip.no_critic),
         keys: settings.providerKeys,
       })
       navigate(`/jobs/${job.id}`)
@@ -66,185 +92,164 @@ export function Home() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4">
-      <h1 className="text-2xl font-bold">New job</h1>
+    <div className="mx-auto max-w-2xl space-y-5 p-4 sm:p-6">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <Sparkles className="h-6 w-6 text-primary" aria-hidden="true" />
+          Make a video
+        </h1>
+        <p className="mt-1 text-muted-foreground">
+          Give it a topic, pick a style, and we'll write, voice, shoot and edit it for you.
+        </p>
+      </div>
+
       {health.data?.offline && <OfflineBanner />}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="flex flex-col gap-1">
-          <span className="flex justify-between text-sm font-medium">
-            <span>Topic</span>
-            <span className="text-slate-400">
-              {topic.length}/{TOPIC_MAX}
-            </span>
-          </span>
-          <textarea
-            required
-            maxLength={TOPIC_MAX}
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            rows={3}
-            className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-          />
-          {fieldErrors.topic && (
-            <span role="alert" className="text-sm text-red-600 dark:text-red-400">
-              {fieldErrors.topic}
-            </span>
-          )}
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Archetype</span>
-          {archetypes.isLoading ? (
-            <LoadingState label="Loading archetypes…" />
-          ) : archetypes.error ? (
-            <ErrorState message="Could not load archetypes" />
-          ) : (
-            <select
-              value={archetype}
-              onChange={(e) => setArchetype(e.target.value)}
-              className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-            >
-              <option value={LET_DIRECTOR_CHOOSE}>Let the director choose</option>
-              {archetypes.data?.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-          )}
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Platform</span>
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
-            className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-          >
-            {platforms.data?.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="flex justify-between text-sm font-medium">
-            <span>Direction (optional)</span>
-            <span className="text-slate-400">
-              {direction.length}/{DIRECTION_MAX}
-            </span>
-          </span>
-          <textarea
-            maxLength={DIRECTION_MAX}
-            value={direction}
-            onChange={(e) => setDirection(e.target.value)}
-            rows={3}
-            className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-          />
-        </label>
-
-        <fieldset className="flex flex-wrap gap-4">
-          <legend className="text-sm font-medium">Options</legend>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={noTts} onChange={(e) => setNoTts(e.target.checked)} />
-            Dry run (skip TTS)
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={noVisuals}
-              onChange={(e) => setNoVisuals(e.target.checked)}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Card className="space-y-4">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="topic">What's it about?</Label>
+              <span className="text-xs text-muted-foreground">
+                {topic.length}/{TOPIC_MAX}
+              </span>
+            </div>
+            <Textarea
+              id="topic"
+              required
+              maxLength={TOPIC_MAX}
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              rows={3}
+              placeholder="e.g. the history of lighthouses"
             />
-            No visuals
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={noVideo}
-              onChange={(e) => setNoVideo(e.target.checked)}
-            />
-            No video
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={noMusic}
-              onChange={(e) => setNoMusic(e.target.checked)}
-            />
-            No music
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={noCritic}
-              onChange={(e) => setNoCritic(e.target.checked)}
-            />
-            No critic
-          </label>
-        </fieldset>
+            {fieldErrors.topic && (
+              <span role="alert" className="text-sm text-destructive">
+                {fieldErrors.topic}
+              </span>
+            )}
+          </div>
 
-        <section className="space-y-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-          <h2 className="text-sm font-semibold">Providers</h2>
-          {providers.isLoading ? (
-            <LoadingState label="Loading providers…" />
-          ) : (
-            <>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex flex-col gap-1 text-sm">
-                  <span>Voiceover (TTS)</span>
-                  <select
-                    value={ttsProvider}
-                    onChange={(e) => setTtsProvider(e.target.value)}
-                    className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-                  >
-                    {providers.data?.tts
-                      .filter((p) => p !== 'offline')
-                      .map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  <span>Images</span>
-                  <select
-                    value={imageProvider}
-                    onChange={(e) => setImageProvider(e.target.value)}
-                    className="rounded-md border border-slate-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-                  >
-                    {providers.data?.image
-                      .filter((p) => p !== 'offline')
-                      .map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                LLM ({providers.data?.llm.filter((p) => p !== 'offline').join(', ')}), stock (
-                {providers.data?.stock.filter((p) => p !== 'offline').join(', ')}), video (
-                {providers.data?.video.filter((p) => p !== 'offline').join(', ')}) and music
-                (bundled royalty-free tracks) are chosen automatically from whichever keys you
-                provide below - there's nothing to select for them.
-              </p>
-              <ProviderKeysForm />
-            </>
-          )}
-        </section>
+          <div className="flex flex-col gap-2">
+            <Label>Style</Label>
+            {archetypes.isLoading ? (
+              <LoadingState label="Loading styles…" />
+            ) : archetypes.error ? (
+              <ErrorState message="Could not load styles" />
+            ) : (
+              <ArchetypePicker
+                archetypes={archetypes.data ?? []}
+                value={archetype}
+                onChange={setArchetype}
+              />
+            )}
+          </div>
 
-        <button
-          type="submit"
-          disabled={createJob.isPending}
-          className="rounded-md bg-brand px-4 py-2 font-medium text-white disabled:opacity-50"
+          <div className="flex flex-col gap-2">
+            <Label>Platform</Label>
+            <PlatformPicker
+              platforms={platforms.data ?? []}
+              value={platform || defaultPlatform}
+              onChange={setPlatform}
+            />
+          </div>
+        </Card>
+
+        <CollapsibleSection
+          title="Advanced options"
+          description="Direction notes, which stages to skip, and your own API keys"
         >
-          {createJob.isPending ? 'Creating…' : 'Create job'}
-        </button>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="direction">Direction (optional)</Label>
+              <span className="text-xs text-muted-foreground">
+                {direction.length}/{DIRECTION_MAX}
+              </span>
+            </div>
+            <Textarea
+              id="direction"
+              maxLength={DIRECTION_MAX}
+              value={direction}
+              onChange={(e) => setDirection(e.target.value)}
+              rows={3}
+              placeholder="Anything specific you want the director to follow"
+            />
+          </div>
+
+          <fieldset className="flex flex-col gap-3">
+            <legend className="text-sm font-medium">Skip stages</legend>
+            {SKIP_OPTIONS.map(({ key, label, hint }) => (
+              <div key={key} className="flex items-start gap-2">
+                <Checkbox
+                  id={`skip-${key}`}
+                  className="mt-0.5"
+                  checked={Boolean(skip[key])}
+                  onCheckedChange={(checked) =>
+                    setSkip((prev) => ({ ...prev, [key]: checked === true }))
+                  }
+                />
+                <Label htmlFor={`skip-${key}`} className="flex-col items-start gap-0.5 font-normal">
+                  {label}
+                  {hint && <span className="text-xs font-normal text-muted-foreground">{hint}</span>}
+                </Label>
+              </div>
+            ))}
+          </fieldset>
+
+          <div className="space-y-3 border-t pt-4">
+            <h3 className="text-sm font-medium">Providers</h3>
+            {providers.isLoading ? (
+              <LoadingState label="Loading providers…" />
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex flex-col gap-1.5">
+                    <Label>Voiceover (TTS)</Label>
+                    <Select value={ttsProvider || defaultTts} onValueChange={setTtsProvider}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ttsOptions.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label>Images</Label>
+                    <Select value={imageProvider || defaultImage} onValueChange={setImageProvider}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {imageOptions.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  LLM ({providers.data?.llm.filter((p) => p !== 'offline').join(', ')}), stock (
+                  {providers.data?.stock.filter((p) => p !== 'offline').join(', ')}), video (
+                  {providers.data?.video.filter((p) => p !== 'offline').join(', ')}) and music
+                  (bundled royalty-free tracks) are chosen automatically from whichever keys you
+                  provide below.
+                </p>
+                <ProviderKeysForm />
+              </>
+            )}
+          </div>
+        </CollapsibleSection>
+
+        <Button type="submit" size="lg" disabled={createJob.isPending} className="w-full rounded-full sm:w-auto">
+          {createJob.isPending ? 'Creating…' : 'Create video'}
+        </Button>
       </form>
     </div>
   )

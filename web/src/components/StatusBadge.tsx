@@ -1,21 +1,19 @@
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+
 import type { JobStatus, StageStatus } from '../api/types'
 
 const COLORS: Record<string, string> = {
-  queued: 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  pending: 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  running: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-  completed: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-  skipped: 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400',
-  failed: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-  error: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-  cancelled: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+  queued: 'bg-secondary text-secondary-foreground',
+  pending: 'bg-secondary text-secondary-foreground',
+  running: 'bg-primary/15 text-primary dark:bg-primary/25',
+  completed: 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
+  skipped: 'bg-muted text-muted-foreground',
+  failed: 'bg-destructive/10 text-destructive',
+  error: 'bg-destructive/10 text-destructive',
+  cancelled: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
 }
 
 export function StatusBadge({ status }: { status: JobStatus | StageStatus }) {
-  const classes = COLORS[status] ?? COLORS.pending
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${classes}`}>
-      {status}
-    </span>
-  )
+  return <Badge className={cn('border-transparent', COLORS[status] ?? COLORS.pending)}>{status}</Badge>
 }

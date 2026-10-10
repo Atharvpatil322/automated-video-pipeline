@@ -1,12 +1,17 @@
+import { ClipboardCheck } from 'lucide-react'
+
 import type { CritiqueResult } from '../api/types'
 
 export function CriticReview({ review }: { review: CritiqueResult }) {
   return (
     <section aria-labelledby="critic-heading" className="space-y-2">
-      <h2 id="critic-heading" className="text-lg font-semibold">
+      <h2 id="critic-heading" className="flex items-center gap-2 text-lg font-semibold">
+        <ClipboardCheck className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
         Critic review
+        <span className="ml-auto rounded-full bg-accent px-2.5 py-0.5 text-base font-bold text-accent-foreground">
+          {review.score.toFixed(1)}/10
+        </span>
       </h2>
-      <p className="text-2xl font-bold">{review.score.toFixed(1)}/10</p>
       {review.strengths.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-green-700 dark:text-green-400">Strengths</h3>

@@ -1,3 +1,5 @@
+import { DollarSign } from 'lucide-react'
+
 import type { CostActual, CostEstimate } from '../api/types'
 import { actualTotal, estimateTotal, formatUsd } from '../lib/cost'
 
@@ -18,41 +20,53 @@ export function CostPanel({
   actual: CostActual | null
 }) {
   if (!estimate && !actual) return null
+
+  const total = actual ? actualTotal(actual) : estimateTotal(estimate)
+  const label = actual ? 'Cost so far' : 'Estimated cost'
+
   return (
-    <section aria-labelledby="cost-heading" className="space-y-2">
-      <h2 id="cost-heading" className="text-lg font-semibold">
-        Cost
+    <section aria-labelledby="cost-heading" className="space-y-3">
+      <h2 id="cost-heading" className="flex items-center gap-2 text-lg font-semibold">
+        <DollarSign className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+        {label}
+        <span className="ml-auto text-xl font-bold tabular-nums text-primary">{formatUsd(total)}</span>
       </h2>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400">
-            <th scope="col" className="py-1">Stage</th>
-            <th scope="col" className="py-1">Estimate</th>
-            <th scope="col" className="py-1">Actual</th>
-          </tr>
-        </thead>
-        <tbody>
-          {STAGES.map(({ key, label }) => (
-            <tr key={key} className="border-b border-slate-100 dark:border-slate-900">
-              <td className="py-1">{label}</td>
-              <td className="py-1">{formatUsd(estimate?.breakdown[key] ?? 0)}</td>
-              <td className="py-1">{formatUsd(actual?.breakdown[key] ?? 0)}</td>
+
+      <details className="text-sm">
+        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+          Breakdown by stage
+        </summary>
+        <table className="mt-2 w-full text-left">
+          <thead>
+            <tr className="border-b text-muted-foreground">
+              <th scope="col" className="py-1">Stage</th>
+              <th scope="col" className="py-1">Estimate</th>
+              <th scope="col" className="py-1">Actual</th>
             </tr>
-          ))}
-          <tr className="font-semibold">
-            <td className="py-1">Total</td>
-            <td className="py-1">{formatUsd(estimateTotal(estimate))}</td>
-            <td className="py-1">{formatUsd(actualTotal(actual))}</td>
-          </tr>
-        </tbody>
-      </table>
-      {estimate?.notes && estimate.notes.length > 0 && (
-        <ul className="text-xs text-slate-500 dark:text-slate-400">
-          {estimate.notes.map((note, i) => (
-            <li key={i}>{note}</li>
-          ))}
-        </ul>
-      )}
+          </thead>
+          <tbody>
+            {STAGES.map(({ key, label: stageLabel }) => (
+              <tr key={key} className="border-b border-border/60">
+                <td className="py-1">{stageLabel}</td>
+                <td className="py-1">{formatUsd(estimate?.breakdown[key] ?? 0)}</td>
+                <td className="py-1">{formatUsd(actual?.breakdown[key] ?? 0)}</td>
+              </tr>
+            ))}
+            <tr className="font-semibold">
+              <td className="py-1">Total</td>
+              <td className="py-1">{formatUsd(estimateTotal(estimate))}</td>
+              <td className="py-1">{formatUsd(actualTotal(actual))}</td>
+            </tr>
+          </tbody>
+        </table>
+        {estimate?.notes && estimate.notes.length > 0 && (
+          <ul className="mt-2 text-xs text-muted-foreground">
+            {estimate.notes.map((note, i) => (
+              <li key={i}>{note}</li>
+            ))}
+          </ul>
+        )}
+      </details>
     </section>
   )
 }

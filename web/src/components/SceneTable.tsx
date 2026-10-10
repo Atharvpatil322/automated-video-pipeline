@@ -6,7 +6,7 @@ export function SceneTable({ scenes }: { scenes: Scene[] }) {
       <table className="w-full min-w-[480px] text-left text-sm">
         <caption className="sr-only">Scene plan</caption>
         <thead>
-          <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          <tr className="border-b text-muted-foreground">
             <th scope="col" className="py-1 pr-2">#</th>
             <th scope="col" className="py-1 pr-2">Visual</th>
             <th scope="col" className="py-1 pr-2">Motion</th>
@@ -16,7 +16,7 @@ export function SceneTable({ scenes }: { scenes: Scene[] }) {
         </thead>
         <tbody>
           {scenes.map((scene, i) => (
-            <tr key={i} className="border-b border-slate-100 align-top dark:border-slate-900">
+            <tr key={i} className="border-b border-border/60 align-top">
               <td className="py-2 pr-2">{i + 1}</td>
               <td className="py-2 pr-2">{scene.visual_type}</td>
               <td className="py-2 pr-2">{scene.motion}</td>

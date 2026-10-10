@@ -23,4 +23,13 @@ export default tseslint.config([
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  {
+    // shadcn-generated primitives - not hand-edited, follow the shadcn
+    // registry's own conventions (e.g. exporting a cva variants function
+    // alongside the component) rather than this project's lint rules.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
