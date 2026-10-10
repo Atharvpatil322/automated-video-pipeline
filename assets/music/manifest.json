@@ -1,0 +1,26 @@
+[
+  {
+    "id": "epic-01",
+    "mood": "epic_cinematic",
+    "filename": "epic-01.mp3",
+    "duration": 60.0,
+    "source": "placeholder - not bundled",
+    "license": "replace with a royalty-free track before shipping"
+  },
+  {
+    "id": "chill-01",
+    "mood": "chill_lofi",
+    "filename": "chill-01.mp3",
+    "duration": 60.0,
+    "source": "placeholder - not bundled",
+    "license": "replace with a royalty-free track before shipping"
+  },
+  {
+    "id": "uplifting-01",
+    "mood": "uplifting_pop",
+    "filename": "uplifting-01.mp3",
+    "duration": 60.0,
+    "source": "placeholder - not bundled",
+    "license": "replace with a royalty-free track before shipping"
+  }
+]

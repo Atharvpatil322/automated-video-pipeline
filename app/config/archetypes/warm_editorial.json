@@ -1,0 +1,19 @@
+{
+  "key": "warm_editorial",
+  "scene_pacing": "moderate",
+  "caption_style": "clean",
+  "caption_chunk_size": 5,
+  "caption_linger_s": 0.3,
+  "color_palette": { "background": "#3B2A20", "accent": "#E8A36C", "text": "#FFF4E8" },
+  "text_card_font": "Merriweather",
+  "motion_intensity": 0.9,
+  "default_transition": "crossfade",
+  "transition_duration_frames": 20,
+  "art_style": "warm editorial photography, soft film grain, natural textures",
+  "lighting": "golden-hour warm light, soft shadows",
+  "composition_rules": "intimate medium shots, shallow depth of field, off-center subject placement",
+  "cultural_markers": "everyday, relatable settings, no logos or brand text",
+  "mood": "warm, nostalgic, human",
+  "anti_artifact_guidance": "no photorealistic faces with distorted features, no extra limbs or fingers",
+  "visual_color_palette": ["#3B2A20", "#E8A36C", "#FFF4E8", "#8C5A3C"]
+}

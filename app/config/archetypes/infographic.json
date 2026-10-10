@@ -1,0 +1,19 @@
+{
+  "key": "infographic",
+  "scene_pacing": "fast",
+  "caption_style": "box_highlight",
+  "caption_chunk_size": 6,
+  "caption_linger_s": 0.15,
+  "color_palette": { "background": "#0B1F3A", "accent": "#FFC93C", "text": "#FFFFFF" },
+  "text_card_font": "Space Grotesk",
+  "motion_intensity": 0.8,
+  "default_transition": "slide_left",
+  "transition_duration_frames": 10,
+  "art_style": "flat vector infographic illustration, clean geometric shapes, minimal shading",
+  "lighting": "even, shadowless flat lighting",
+  "composition_rules": "bold central subject, generous negative space for text overlay, rule of thirds",
+  "cultural_markers": "neutral, globally legible iconography, no text baked into the image",
+  "mood": "clear, confident, informative",
+  "anti_artifact_guidance": "no photorealistic faces, no blurred edges, no extra limbs or fingers",
+  "visual_color_palette": ["#0B1F3A", "#FFC93C", "#FFFFFF", "#4A7FBF"]
+}

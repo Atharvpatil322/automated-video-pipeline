@@ -1,0 +1,49 @@
+[project]
+name = "video-pipeline"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "groq>=0.11",
+    "openai>=1.30",
+    "google-genai>=0.3",
+    "fal-client>=0.5",
+    "httpx>=0.27",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "motor>=3.4",
+    "arq>=0.26",
+    "pydantic-settings>=2.2",
+    "sse-starlette>=2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mongomock-motor>=0.0.30",
+    "fakeredis>=2.23",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-m 'not live'"
+markers = [
+    "live: needs a real API key and network access; skipped by default, run with `pytest -m live`",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

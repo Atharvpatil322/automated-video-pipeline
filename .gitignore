@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+output/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.claude/scheduled_tasks.lock

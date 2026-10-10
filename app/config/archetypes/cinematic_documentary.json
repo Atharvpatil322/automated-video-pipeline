@@ -1,0 +1,19 @@
+{
+  "key": "cinematic_documentary",
+  "scene_pacing": "cinematic",
+  "caption_style": "clean",
+  "caption_chunk_size": 4,
+  "caption_linger_s": 0.5,
+  "color_palette": { "background": "#111318", "accent": "#7FB3D5", "text": "#F2F2F2" },
+  "text_card_font": "Inter",
+  "motion_intensity": 0.9,
+  "default_transition": "crossfade",
+  "transition_duration_frames": 18,
+  "art_style": "cinematic documentary photography, realistic detail, subtle film grain",
+  "lighting": "moody, directional lighting with soft contrast",
+  "composition_rules": "wide establishing shots, deliberate framing, letterboxed feel",
+  "cultural_markers": "neutral, documentary-realistic settings, no text baked into the image",
+  "mood": "serious, contemplative, grounded",
+  "anti_artifact_guidance": "no distorted faces, no extra limbs or fingers, no warped hands",
+  "visual_color_palette": ["#111318", "#7FB3D5", "#F2F2F2", "#3A4552"]
+}
