@@ -2,13 +2,14 @@ from fastapi import APIRouter
 
 from app.config.platforms import PLATFORMS
 from app.config.registry import load_archetypes
+from app.server.config import get_settings
 
 router = APIRouter(prefix="/api/v1", tags=["meta"])
 
 
 @router.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health() -> dict[str, object]:
+    return {"status": "ok", "offline": get_settings().offline}
 
 
 @router.get("/archetypes")

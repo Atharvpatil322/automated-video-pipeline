@@ -76,5 +76,13 @@ services:
       retries: 10
       start_period: 10s
 
+  web:
+    build: ./web
+    ports:
+      - "5174:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   mongo_data:

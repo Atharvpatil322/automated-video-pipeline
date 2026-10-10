@@ -10,11 +10,13 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
-from app.server.auth import require_api_token
+from app.server.auth import require_api_token_or_query
 from app.server.db import jobs_collection
 from app.server.security import PathTraversalError, safe_join
 
-router = APIRouter(prefix="/api/v1", tags=["files"], dependencies=[Depends(require_api_token)])
+router = APIRouter(
+    prefix="/api/v1", tags=["files"], dependencies=[Depends(require_api_token_or_query)]
+)
 
 
 @router.get("/jobs/{job_id}/files/{file_path:path}")

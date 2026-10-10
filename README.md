@@ -69,7 +69,44 @@ docker compose up --build
 Set `OFFLINE=true` (in `.env`, or `OFFLINE=true docker compose up`) to run
 every job through the deterministic offline providers - no keys needed,
 `$0` cost, same as `--offline` on the CLI. `api` on `:8000`, `mongo` on
-`:27017`, `redis` on `:6379`.
+`:27017`, `redis` on `:6379`, `web` (the React UI) on `:5174`.
+
+## Running the UI
+
+The UI lives in `web/` (React + TypeScript + Vite + Tailwind + TanStack
+Query). It talks to the same API as the curl examples below.
+
+**Dev mode** (hot reload, Vite proxies `/api` to `http://localhost:8000` -
+start the API separately first, e.g. `uvicorn app.main:app --reload`):
+
+```
+cd web
+npm install
+npm run dev          # http://localhost:5173
+```
+
+**In docker compose**: the `web` service builds the production bundle and
+serves it from nginx, which also proxies `/api/` to the `api` service (so
+the browser only ever talks to one origin - no CORS, and SSE streams
+through unbuffered):
+
+```
+docker compose up --build
+# -> http://localhost:5174
+```
+
+Settings (API base URL, API token, BYOK provider keys) are configured from
+the UI's own Settings page and kept in `sessionStorage` only - nothing is
+written to disk or sent anywhere except as part of creating a job.
+
+**Frontend checks**, from `web/`:
+
+```
+npm run typecheck    # tsc -b --noEmit
+npm run lint         # eslint .
+npm test             # vitest run - component tests + the SSE parser/hook
+npm run test:e2e     # playwright - needs the compose stack up in OFFLINE mode
+```
 
 ### Create a job (curl)
 

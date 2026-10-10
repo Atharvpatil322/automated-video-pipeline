@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from app.schema.job import JobDocument, JobOptions
+from app.server.config import set_settings
 from app.server.db import jobs_collection
 from app.server.security import PathTraversalError, safe_join
 
@@ -82,3 +83,37 @@ async def test_files_route_supports_range_requests(client, tmp_path):
     assert response.headers["content-range"] == f"bytes 10-19/{len(content)}"
 
     # curl -r 10-19 equivalent: `curl -H "Range: bytes=10-19" .../files/final.mp4`
+
+
+async def test_files_route_accepts_token_query_param_when_api_token_set(
+    client, server_settings, tmp_path
+):
+    """<video>/<img> tags can't send an Authorization header, so the files
+    route (only) also accepts the token as ?token=... - every other route
+    stays header-only (see test_jobs_api.py / test_events.py).
+    """
+    server_settings.api_token = "secret-token"
+    set_settings(server_settings)
+    run_dir = tmp_path / "run5"
+    run_dir.mkdir()
+    (run_dir / "final.mp4").write_bytes(b"video-bytes")
+    await _insert_job_with_run_dir("job-files-5", run_dir)
+
+    no_auth = await client.get("/api/v1/jobs/job-files-5/files/final.mp4")
+    assert no_auth.status_code == 401
+
+    wrong_token = await client.get(
+        "/api/v1/jobs/job-files-5/files/final.mp4", params={"token": "wrong"}
+    )
+    assert wrong_token.status_code == 401
+
+    with_query_token = await client.get(
+        "/api/v1/jobs/job-files-5/files/final.mp4", params={"token": "secret-token"}
+    )
+    assert with_query_token.status_code == 200
+
+    with_header = await client.get(
+        "/api/v1/jobs/job-files-5/files/final.mp4",
+        headers={"Authorization": "Bearer secret-token"},
+    )
+    assert with_header.status_code == 200

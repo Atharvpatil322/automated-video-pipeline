@@ -15,3 +15,21 @@ async def require_api_token(authorization: str | None = Header(default=None)) ->
     expected = f"Bearer {settings.api_token}"
     if authorization != expected:
         raise HTTPException(status_code=401, detail="missing or invalid bearer token")
+
+
+async def require_api_token_or_query(
+    authorization: str | None = Header(default=None), token: str | None = None
+) -> None:
+    """Same check as `require_api_token`, plus a `?token=` query param
+    fallback - used only by the files route, whose URLs are loaded by
+    plain <video>/<img> tags that cannot set an Authorization header.
+    Every other route keeps header-only auth.
+    """
+    settings = get_settings()
+    if not settings.api_token:
+        return
+    if authorization == f"Bearer {settings.api_token}":
+        return
+    if token == settings.api_token:
+        return
+    raise HTTPException(status_code=401, detail="missing or invalid bearer token")

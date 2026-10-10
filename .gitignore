@@ -8,3 +8,11 @@ output/
 .ruff_cache/
 *.egg-info/
 .claude/scheduled_tasks.lock
+
+# web/ (Node/Vite/Playwright)
+web/node_modules/
+web/dist/
+web/playwright-report/
+web/test-results/
+web/screenshots/
+web/.vite/

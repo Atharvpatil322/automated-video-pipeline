@@ -11,6 +11,7 @@ than one stage behind, and always fully caught up by job completion.
 """
 
 import asyncio
+import contextlib
 from datetime import datetime
 from typing import Any
 
@@ -25,10 +26,37 @@ class ServerCallbacks:
         self.job_id = job_id
         self._stage_starts: dict[str, float] = {}
         self._pending: list[asyncio.Task] = []
+        self._stage_chains: dict[str, asyncio.Task] = {}
         self._cancelled = False
 
     def _spawn(self, coro) -> None:
         self._pending.append(asyncio.ensure_future(coro))
+
+    def _spawn_for_stage(self, stage: str, coro) -> None:
+        """Like `_spawn`, but chained after the previous pending task for
+        this same stage, so e.g. on_stage_complete("tts") can never publish
+        before on_stage_start("tts")'s own write finishes.
+
+        Without this, two independently-scheduled fire-and-forget tasks for
+        the same stage (both only reconciled later by `flush()`'s
+        `asyncio.gather`, which runs them concurrently with no ordering
+        guarantee) can have their Mongo write + Redis publish interleave in
+        either order - found via a live run where a fast (offline) TTS
+        stage's "completed" event occasionally published before its own
+        "running" event, leaving the UI showing a stage as running forever
+        after later stages had already completed.
+        """
+        previous = self._stage_chains.get(stage)
+
+        async def chained() -> None:
+            if previous is not None:
+                with contextlib.suppress(Exception):
+                    await previous
+            await coro
+
+        task = asyncio.ensure_future(chained())
+        self._stage_chains[stage] = task
+        self._pending.append(task)
 
     async def flush(self) -> None:
         if not self._pending:
@@ -58,7 +86,7 @@ class ServerCallbacks:
             )
             await self._publish(f"stage.{stage}", {"status": "running"})
 
-        self._spawn(go())
+        self._spawn_for_stage(stage, go())
 
     def _duration(self, stage: str) -> float | None:
         start = self._stage_starts.get(stage)
@@ -79,14 +107,14 @@ class ServerCallbacks:
             )
             await self._publish(f"stage.{stage}", {"status": "completed", "detail": detail})
 
-        self._spawn(go())
+        self._spawn_for_stage(stage, go())
 
     def on_stage_skip(self, stage: str, reason: str) -> None:
         async def go() -> None:
             await self._set({f"stages.{stage}.status": "skipped", f"stages.{stage}.reason": reason})
             await self._publish(f"stage.{stage}", {"status": "skipped", "reason": reason})
 
-        self._spawn(go())
+        self._spawn_for_stage(stage, go())
 
     def on_stage_error(self, stage: str, error: Exception) -> None:
         duration = self._duration(stage)
@@ -101,7 +129,7 @@ class ServerCallbacks:
             )
             await self._publish(f"stage.{stage}", {"status": "error", "error": str(error)})
 
-        self._spawn(go())
+        self._spawn_for_stage(stage, go())
 
     def on_progress(self, stage: str, data: dict[str, Any]) -> None:
         async def go() -> None:
@@ -117,7 +145,7 @@ class ServerCallbacks:
                 await self._set({"review": data["review"]})
             await self._publish(f"progress.{stage}", data)
 
-        self._spawn(go())
+        self._spawn_for_stage(stage, go())
 
     def on_cost_estimate(self, estimate: dict[str, Any]) -> bool:
         # Worker mode: auto-approve, matching the reference ("the worker's
